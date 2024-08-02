@@ -3,7 +3,7 @@ A classic [Amiga](https://en.wikipedia.org/wiki/Amiga)-style sine text scroller 
 
 All the code was generated using OpenAI's ChatGPT 4.0 classic model using an interactive chat. No code was ever manually edited.
 
-*NOTE: The sine scroller suffers from a common issue with generated since scrollers i.e., the individual characters are not orientated the way one would expect them to be for the effect to be correct.*
+*NOTE: The sine scroller suffers from a common issue with generated since scrollers i.e., the individual characters are not orientated the way one would expect them to be for the effect to be "correct".*
 
 ### Summary of Major Steps in the Iterative Development Process
 
