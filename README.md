@@ -1,9 +1,12 @@
 # AmigaStyleDemo
-A classic [Amiga](https://en.wikipedia.org/wiki/Amiga)-style sine text scroller with [copper bars](https://en.wikipedia.org/wiki/Raster_bar) in C#.
+A classic [Amiga](https://en.wikipedia.org/wiki/Amiga)-style sine text scroller with [copper bars](https://en.wikipedia.org/wiki/Raster_bar) initially developed in C# and ported to HTML/JavaScript.
 
 All the code was generated using OpenAI's ChatGPT 4.0 classic model using an interactive chat. No code was ever manually edited.
 
-*NOTE: The sine scroller suffers from a common issue with generated since scrollers i.e., the individual characters are not orientated the way one would expect them to be for the effect to be "correct".*
+*NOTE: The sine scroller suffers from a common issue with generated sine scrollers i.e., the individual characters are not oriented the way one would expect them to be for the effect to be "correct".*
+
+## Live Demo
+Check out the live demo of the AmigaStyleDemo [here](https://mrandreastoth.github.io/AmigaStyleDemo/).
 
 ### Summary of Major Steps in the Iterative Development Process
 
@@ -31,12 +34,16 @@ All the code was generated using OpenAI's ChatGPT 4.0 classic model using an int
    - **Goal**: Create a smooth side-to-side sine-wave motion for the instructions text to ensure continuous visibility.
    - **Implementation**: Adjusted the instructions text to move in a sine wave pattern horizontally at the bottom of the screen.
 
-7. **Final Adjustments**:
-   - **Goal**: Ensure correct speeds and smooth motion for both the sine scroller and the copper bars.
-   - **Implementation**: Repeatedly tweaked the frequencies and amplitudes for optimal visual effects, ensuring a classic Amiga demo look.
+7. **Porting to HTML/JavaScript**:
+   - **Goal**: Replicate the demo in a web environment to make it accessible online.
+   - **Implementation**: Ported the application to use HTML5 Canvas for rendering. The animation logic was adapted to JavaScript to maintain performance and visual fidelity.
 
-8. **Documentation and Refinement**:
+8. **Final Adjustments and Hosting**:
+   - **Goal**: Ensure correct speeds and smooth motion for both the sine scroller and the copper bars in the web version.
+   - **Implementation**: Repeatedly tweaked the frequencies and amplitudes for optimal visual effects in the browser. Hosted the demo using GitHub Pages to allow live interaction.
+
+9. **Documentation and Refinement**:
    - **Goal**: Add comprehensive comments and rename the class to reflect its purpose accurately.
-   - **Implementation**: Included a header comment detailing the NuGet package requirements and the creation process, and renamed the class to `AmigaStyleDemo`.
+   - **Implementation**: Included a header comment detailing the NuGet package requirements and the creation process, and renamed the class to `AmigaStyleDemo`. Provided detailed documentation for the JavaScript version, including how to run it locally and its web hosting.
 
-These iterative steps, driven by feedback and refinement, resulted in a polished Amiga-style sine text scroller with animated copper bars, effectively replicating the nostalgic look and feel of classic Amiga demos.
+These iterative steps, driven by feedback and refinement, resulted in a polished Amiga-style sine text scroller with animated copper bars, effectively replicating the nostalgic look and feel of classic Amiga demos. The addition of an HTML/JavaScript version broadens accessibility and showcases the adaptability of the original design to modern web technologies.
