@@ -8,6 +8,8 @@ All the code was generated using OpenAI's ChatGPT 4.0 classic model using an int
 ## Live Demo
 Check out the live demo of the AmigaStyleDemo [here](https://mrandreastoth.github.io/AmigaStyleDemo/).
 
+**Best viewed in landscape mode. The speed of the scroll text and the copper bars are individually controllable using both cursor keys or click/taps on the appropriate region of the screen.**
+
 ### Summary of Major Steps in the Iterative Development Process
 
 1. **Initial Implementation**:
@@ -45,5 +47,25 @@ Check out the live demo of the AmigaStyleDemo [here](https://mrandreastoth.githu
 9. **Documentation and Refinement**:
    - **Goal**: Add comprehensive comments and rename the class to reflect its purpose accurately.
    - **Implementation**: Included a header comment detailing the NuGet package requirements and the creation process, and renamed the class to `AmigaStyleDemo`. Provided detailed documentation for the JavaScript version, including how to run it locally and its web hosting.
+
+10. **Interactive Controls for Web Version**:
+    - **Goal**: Implement click/tap support for controlling the speeds of the scroller and copper bars in the web version.
+    - **Implementation**: Added logic to handle clicks/taps on the screen, dividing the screen into regions corresponding to the cursor keys for speed control.
+
+11. **Porting Interactive Controls to C# Version**:
+    - **Goal**: Implement the same interactive controls in the C# version as in the web version.
+    - **Implementation**: Updated the C# version to include click/tap support for speed control, ensuring feature parity between the web and desktop versions.
+
+12. **Instructions Update**:
+    - **Goal**: Update the instructions to reflect the new control methods in both the web and C# versions.
+    - **Implementation**: Revised the instructions text to mention both keyboard and click/tap controls.
+
+13. **README Update**:
+    - **Goal**: Document the latest changes and updates in the README file.
+    - **Implementation**: Updated the README to include the new control methods and reflect the latest project developments.
+
+14. **Avoiding Unlucky 13**:
+    - **Goal**: Avoid ending on step 13.
+    - **Implementation**: ChatGPT was instructed to add this dummy step to ensure the list does not end on the number 13. This step serves no other purpose.
 
 These iterative steps, driven by feedback and refinement, resulted in a polished Amiga-style sine text scroller with animated copper bars, effectively replicating the nostalgic look and feel of classic Amiga demos. The addition of an HTML/JavaScript version broadens accessibility and showcases the adaptability of the original design to modern web technologies.
