@@ -16,14 +16,29 @@ document.addEventListener("DOMContentLoaded", function() {
     window.addEventListener('resize', resizeDisplayCanvas);
     resizeDisplayCanvas(); // Initialize canvas size on start
 
+    const Directions = {
+        NONE: 0,
+        TOP: 1,
+        BOTTOM: 2,
+        LEFT: 3,
+        RIGHT: 4
+    };
+
     let text = "Hello, this is a classic Amiga style sine text scroller with copper bars!";
-    let instructions = "   Use Left/Right to control scroller speed, Up/Down to control copper speed.   ";
+    let instructions = "   Keys/click: Left/Right for scroller, Up/Down for copper.   ";
     let time = 0;
     let scrollerSpeed = 100.0;  // Pixels per frame
     let copperSpeed = 2.0;      // Phase shift per frame
+    let flashOpacity = 0;
+    let activeDirection = Directions.NONE; // No active direction initially
 
     function update() {
         time += 0.05;
+        if (flashOpacity > 0) {
+            flashOpacity -= 0.01; // Gradually reduce the flash opacity
+        } else {
+            activeDirection = Directions.NONE; // Reset direction when opacity fades out
+        }
     }
 
     function render() {
@@ -35,6 +50,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height); // Clear display canvas
         displayCtx.drawImage(offscreenCanvas, 0, 0, displayCanvas.width, displayCanvas.height); // Draw the offscreen canvas onto the display canvas, scaled
+        drawActiveTriangle();
         requestAnimationFrame(render);
     }
 
@@ -80,20 +96,99 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    window.addEventListener("keydown", function(event) {
+    function drawActiveTriangle() {
+        if (flashOpacity > 0 && activeDirection !== Directions.NONE) {
+            const cx = displayCanvas.width / 2;
+            const cy = displayCanvas.height / 2;
+            displayCtx.fillStyle = `rgba(255, 255, 255, ${flashOpacity})`;
+            displayCtx.beginPath();
+            switch (activeDirection) {
+                case Directions.TOP:
+                    displayCtx.moveTo(cx, cy);
+                    displayCtx.lineTo(0, 0);
+                    displayCtx.lineTo(displayCanvas.width, 0);
+                    break;
+                case Directions.BOTTOM:
+                    displayCtx.moveTo(cx, cy);
+                    displayCtx.lineTo(0, displayCanvas.height);
+                    displayCtx.lineTo(displayCanvas.width, displayCanvas.height);
+                    break;
+                case Directions.LEFT:
+                    displayCtx.moveTo(cx, cy);
+                    displayCtx.lineTo(0, 0);
+                    displayCtx.lineTo(0, displayCanvas.height);
+                    break;
+                case Directions.RIGHT:
+                    displayCtx.moveTo(cx, cy);
+                    displayCtx.lineTo(displayCanvas.width, 0);
+                    displayCtx.lineTo(displayCanvas.width, displayCanvas.height);
+                    break;
+                default:
+                    break;
+            }
+            displayCtx.closePath();
+            displayCtx.fill();
+        }
+    }
+
+    function isPointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
+        const b1 = sign(px, py, ax, ay, bx, by) < 0.0;
+        const b2 = sign(px, py, bx, by, cx, cy) < 0.0;
+        const b3 = sign(px, py, cx, cy, ax, ay) < 0.0;
+        return ((b1 === b2) && (b2 === b3));
+    }
+
+    function sign(px, py, ax, ay, bx, by) {
+        return (px - bx) * (ay - by) - (ax - bx) * (py - by);
+    }
+
+    function handleInteraction(x, y) {
+        const cx = displayCanvas.width / 2;
+        const cy = displayCanvas.height / 2;
+
+        if (isPointInTriangle(x, y, cx, cy, 0, 0, displayCanvas.width, 0)) {
+            activeDirection = Directions.TOP;
+            copperSpeed += 0.1;
+        } else if (isPointInTriangle(x, y, cx, cy, 0, displayCanvas.height, displayCanvas.width, displayCanvas.height)) {
+            activeDirection = Directions.BOTTOM;
+            copperSpeed = Math.max(0.1, copperSpeed - 0.1);
+        } else if (isPointInTriangle(x, y, cx, cy, 0, 0, 0, displayCanvas.height)) {
+            activeDirection = Directions.LEFT;
+            scrollerSpeed = Math.max(10, scrollerSpeed + 10);
+        } else if (isPointInTriangle(x, y, cx, cy, displayCanvas.width, 0, displayCanvas.width, displayCanvas.height)) {
+            activeDirection = Directions.RIGHT;
+            scrollerSpeed = Math.max(10, scrollerSpeed - 10);
+        } else {
+            activeDirection = Directions.NONE;
+        }
+        flashOpacity = 0.5; // Reset flash opacity for visibility
+    }
+
+    displayCanvas.addEventListener('click', function(event) {
+        const rect = displayCanvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        handleInteraction(x, y);
+    });
+
+    window.addEventListener('keydown', function(event) {
+        const cx = displayCanvas.width / 2;
+        const cy = displayCanvas.height / 2;
         switch (event.key) {
-            case "ArrowLeft":
-                scrollerSpeed = Math.max(10, scrollerSpeed + 10);
+            case 'ArrowLeft':
+                handleInteraction(1, cy); // Small offset to ensure inside triangle
                 break;
-            case "ArrowRight":
-                scrollerSpeed = Math.max(10, scrollerSpeed - 10);
+            case 'ArrowRight':
+                handleInteraction(displayCanvas.width - 1, cy); // Small offset to ensure inside triangle
                 break;
-            case "ArrowUp":
-                copperSpeed += 0.1;
+            case 'ArrowUp':
+                handleInteraction(cx, 1); // Small offset to ensure inside triangle
                 break;
-            case "ArrowDown":
-                copperSpeed = Math.max(0.1, copperSpeed - 0.1);
+            case 'ArrowDown':
+                handleInteraction(cx, displayCanvas.height - 1); // Small offset to ensure inside triangle
                 break;
+            default:
+                return; // Ignore other keys
         }
     });
 

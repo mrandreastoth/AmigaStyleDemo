@@ -17,7 +17,7 @@ class AmigaStyleDemo
 {
     private static RenderWindow window;
     private static string text = "Hello, this is a classic Amiga style sine text scroller with copper bars!";
-    private static string instructions = "   Use Left/Right to control scroller speed, Up/Down to control copper speed.   ";
+    private static string instructions = "   Keys/click: Left/Right for scroller, Up/Down for copper.   ";
     private static Font font;
     private static Text sfmlText;
     private static Text sfmlInstructions;
@@ -30,6 +30,17 @@ class AmigaStyleDemo
     private static int windowHeight = 600;
     private static string fontUrl = "https://github.com/google/fonts/raw/main/ofl/pressstart2p/PressStart2P-Regular.ttf";
     private static string fontPath = "PressStart2P-Regular.ttf";
+    private static float flashOpacity = 0;
+    private static Directions activeDirection = Directions.NONE;
+
+    private enum Directions
+    {
+        NONE,
+        TOP,
+        BOTTOM,
+        LEFT,
+        RIGHT
+    }
 
     static void Main()
     {
@@ -46,6 +57,7 @@ class AmigaStyleDemo
         window.SetFramerateLimit(60);
         window.Closed += (sender, e) => window.Close();
         window.KeyPressed += OnKeyPressed;
+        window.MouseButtonPressed += OnMousePressed;
 
         font = new Font(fontPath); // Ensure you have a valid font file path here
         sfmlText = new Text(text, font, 32)
@@ -72,29 +84,88 @@ class AmigaStyleDemo
 
     private static void OnKeyPressed(object sender, KeyEventArgs e)
     {
-        if (e.Code == Keyboard.Key.Left)
+        switch (e.Code)
         {
-            scrollerSpeed += 10.0f;
+            case Keyboard.Key.Left:
+                HandleInteraction(Directions.LEFT);
+                break;
+            case Keyboard.Key.Right:
+                HandleInteraction(Directions.RIGHT);
+                break;
+            case Keyboard.Key.Up:
+                HandleInteraction(Directions.TOP);
+                break;
+            case Keyboard.Key.Down:
+                HandleInteraction(Directions.BOTTOM);
+                break;
         }
-        else if (e.Code == Keyboard.Key.Right)
+    }
+
+    private static void OnMousePressed(object sender, MouseButtonEventArgs e)
+    {
+        float x = e.X * (windowWidth / (float)window.Size.X);
+        float y = e.Y * (windowHeight / (float)window.Size.Y);
+        HandleMouseInteraction(x, y);
+    }
+
+    private static void HandleMouseInteraction(float x, float y)
+    {
+        float cx = windowWidth / 2;
+        float cy = windowHeight / 2;
+
+        if (IsPointInTriangle(x, y, cx, cy, 0, 0, windowWidth, 0))
         {
-            scrollerSpeed -= 10.0f;
-            if (scrollerSpeed < 10.0f) scrollerSpeed = 10.0f; // Prevent negative or too slow speed
+            HandleInteraction(Directions.TOP);
         }
-        else if (e.Code == Keyboard.Key.Up)
+        else if (IsPointInTriangle(x, y, cx, cy, 0, windowHeight, windowWidth, windowHeight))
         {
-            copperSpeed += 0.5f;
+            HandleInteraction(Directions.BOTTOM);
         }
-        else if (e.Code == Keyboard.Key.Down)
+        else if (IsPointInTriangle(x, y, cx, cy, 0, 0, 0, windowHeight))
         {
-            copperSpeed -= 0.5f;
-            if (copperSpeed < 0.5f) copperSpeed = 0.5f; // Prevent negative or too slow speed
+            HandleInteraction(Directions.LEFT);
+        }
+        else if (IsPointInTriangle(x, y, cx, cy, windowWidth, 0, windowWidth, windowHeight))
+        {
+            HandleInteraction(Directions.RIGHT);
+        }
+    }
+
+    private static void HandleInteraction(Directions direction)
+    {
+        activeDirection = direction;
+        flashOpacity = 0.5f; // Reset flash opacity for visibility
+
+        switch (direction)
+        {
+            case Directions.TOP:
+                copperSpeed += 0.1f;
+                break;
+            case Directions.BOTTOM:
+                copperSpeed = Math.Max(0.1f, copperSpeed - 0.1f);
+                break;
+            case Directions.LEFT:
+                scrollerSpeed = Math.Max(10f, scrollerSpeed + 10f);
+                break;
+            case Directions.RIGHT:
+                scrollerSpeed = Math.Max(10f, scrollerSpeed - 10f);
+                break;
+            default:
+                break;
         }
     }
 
     private static void Update()
     {
         time += 0.05f;
+        if (flashOpacity > 0)
+        {
+            flashOpacity -= 0.01f; // Gradually reduce the flash opacity
+        }
+        else
+        {
+            activeDirection = Directions.NONE; // Reset direction when opacity fades out
+        }
     }
 
     private static void Render()
@@ -102,11 +173,18 @@ class AmigaStyleDemo
         window.Clear(Color.Black);
 
         DrawCopperBars();
+        DrawScrollingText();
+        DrawInstructions();
+        DrawActiveTriangle();
 
+        window.Display();
+    }
+
+    private static void DrawScrollingText()
+    {
         float frequency = 0.05f;
         float amplitude = 50.0f;
 
-        // Draw scrolling main text
         for (int i = 0; i < text.Length; i++)
         {
             float x = windowWidth - ((time * scrollerSpeed) % (text.Length * 32 + windowWidth)) + i * 32;
@@ -116,13 +194,13 @@ class AmigaStyleDemo
             sfmlText.Position = new Vector2f(x, y);
             window.Draw(sfmlText);
         }
+    }
 
-        // Draw side-to-side sine-wave motion instructions
+    private static void DrawInstructions()
+    {
         float instructionX = (windowWidth / 2) + (float)(Math.Sin(time * instructionFrequency) * instructionAmplitude);
         sfmlInstructions.Position = new Vector2f(instructionX - sfmlInstructions.GetLocalBounds().Width / 2, windowHeight - 30);
         window.Draw(sfmlInstructions);
-
-        window.Display();
     }
 
     private static void DrawCopperBars()
@@ -155,6 +233,57 @@ class AmigaStyleDemo
         gradientRectangle[3] = new Vertex(new Vector2f(x, y + height), new Color(0, 0, 0, 0));
 
         window.Draw(gradientRectangle, PrimitiveType.Quads);
+    }
+
+    private static void DrawActiveTriangle()
+    {
+        if (flashOpacity > 0 && activeDirection != Directions.NONE)
+        {
+            float cx = windowWidth / 2;
+            float cy = windowHeight / 2;
+
+            VertexArray triangle = new VertexArray(PrimitiveType.Triangles, 3);
+
+            switch (activeDirection)
+            {
+                case Directions.TOP:
+                    triangle[0] = new Vertex(new Vector2f(cx, cy), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    triangle[1] = new Vertex(new Vector2f(0, 0), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    triangle[2] = new Vertex(new Vector2f(windowWidth, 0), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    break;
+                case Directions.BOTTOM:
+                    triangle[0] = new Vertex(new Vector2f(cx, cy), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    triangle[1] = new Vertex(new Vector2f(0, windowHeight), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    triangle[2] = new Vertex(new Vector2f(windowWidth, windowHeight), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    break;
+                case Directions.LEFT:
+                    triangle[0] = new Vertex(new Vector2f(cx, cy), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    triangle[1] = new Vertex(new Vector2f(0, 0), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    triangle[2] = new Vertex(new Vector2f(0, windowHeight), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    break;
+                case Directions.RIGHT:
+                    triangle[0] = new Vertex(new Vector2f(cx, cy), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    triangle[1] = new Vertex(new Vector2f(windowWidth, 0), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    triangle[2] = new Vertex(new Vector2f(windowWidth, windowHeight), new Color(255, 255, 255, (byte)(flashOpacity * 255)));
+                    break;
+                default:
+                    break;
+            }
+            window.Draw(triangle);
+        }
+    }
+
+    private static bool IsPointInTriangle(float px, float py, float ax, float ay, float bx, float by, float cx, float cy)
+    {
+        bool b1 = Sign(px, py, ax, ay, bx, by) < 0.0f;
+        bool b2 = Sign(px, py, bx, by, cx, cy) < 0.0f;
+        bool b3 = Sign(px, py, cx, cy, ax, ay) < 0.0f;
+        return ((b1 == b2) && (b2 == b3));
+    }
+
+    private static float Sign(float px, float py, float ax, float ay, float bx, float by)
+    {
+        return (px - bx) * (ay - by) - (ax - bx) * (py - by);
     }
 
     private static Color ColorFromHue(float hue)
