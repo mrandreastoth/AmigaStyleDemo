@@ -3,8 +3,6 @@ A classic [Amiga](https://en.wikipedia.org/wiki/Amiga)-style sine text scroller 
 
 All the code was generated using OpenAI's ChatGPT 4.0 classic model using an interactive chat. No code was ever manually edited.
 
-*NOTE: The sine scroller suffers from a common issue with generated sine scrollers i.e., the individual characters are not oriented the way one would expect them to be for the effect to be "correct".*
-
 ## Live Demo
 Check out the live demo of the AmigaStyleDemo [here](https://mrandreastoth.github.io/AmigaStyleDemo/).
 
@@ -64,8 +62,30 @@ Check out the live demo of the AmigaStyleDemo [here](https://mrandreastoth.githu
     - **Goal**: Document the latest changes and updates in the README file.
     - **Implementation**: Updated the README to include the new control methods and reflect the latest project developments.
 
-14. **Avoiding Unlucky 13**:
-    - **Goal**: Avoid ending on step 13.
-    - **Implementation**: ChatGPT was instructed to add this dummy step to ensure the list does not end on the number 13. This step serves no other purpose.
+14. **Character Bending**:
+    - **Goal**: Ensure that each character follows the sine wave naturally by bending them according to the curve.
+    - **Implementation**: Adjusted the rendering logic to "bend" the characters along the sine wave for a more authentic visual effect.
+
+15. **Character Spacing**:
+    - **Goal**: Introduce a small gap between characters to avoid them flowing into each other.
+    - **Implementation**: Added configurable character spacing, preventing overlap and improving readability.
+
+16. **Dynamic Sizing of Pre-Calculated Image Data**:
+    - **Goal**: Dynamically adjust the size of pre-calculated character image data based on their actual dimensions.
+    - **Implementation**: Implemented dynamic sizing logic to ensure pre-calculated character data fits within calculated bounding boxes.
+
+17. **Pre-Calculation of Sine Data**:
+    - **Goal**: Improve performance by pre-calculating the sine wave offsets.
+    - **Implementation**: Introduced a pre-calculation step for sine wave offsets, reducing the computation needed during rendering.
+
+18. **Font Rendering Issue Detection and Recovery**:
+    - **Goal**: Handle inconsistent font rendering in the web version that caused occasional incorrect font displays.
+    - **Implementation**: Introduced a mechanism to detect font rendering issues by comparing pre-rendered character samples and automatically restarting the demo if discrepancies are found.
+
+19. **README Update**:
+    - **Goal**: Document the latest changes and updates in the README file, reflecting the newly added features.
+    - **Implementation**: Updated the README to include the new improvements and reflect the latest project developments.
 
 These iterative steps, driven by feedback and refinement, resulted in a polished Amiga-style sine text scroller with animated copper bars, effectively replicating the nostalgic look and feel of classic Amiga demos. The addition of an HTML/JavaScript version broadens accessibility and showcases the adaptability of the original design to modern web technologies.
+
+**Note:** The C# version still needs to be updated with the latest advancements made in the JavaScript version.
