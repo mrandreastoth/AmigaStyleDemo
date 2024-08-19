@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
         RIGHT: 4
     };
 
-    let text = "Hello, this is a classic Amiga style sine text scroller with copper bars!";
+    let text = "Hello, this is a classic Amiga-style sine text scroller with copper bars!";
     let instructions = "   Keys/click: Left/Right for scroller, Up/Down for copper.   ";
     let time = 0;
     let scrollerSpeed = 60.0;
@@ -40,20 +40,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let y_offset;
     let characterBitmap = {}; // Define the characterBitmap object here
-
-    const checkFrequency = 30; // Check font every 30 frames
-    let frameCount = 0;
-
-    let fontTestReady = false;
-    const fontTestCanvas1 = document.createElement('canvas');
-    const fontTestCtx1 = fontTestCanvas1.getContext('2d');
-    fontTestCanvas1.width = 50;
-    fontTestCanvas1.height = 50;
-
-    const fontTestCanvas2 = document.createElement('canvas');
-    const fontTestCtx2 = fontTestCanvas2.getContext('2d');
-    fontTestCanvas2.width = 50;
-    fontTestCanvas2.height = 50;
 
     function x_to_index(x) {
         const total_width = offscreenCanvas.width + 2 * font_width;
@@ -115,51 +101,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function sign(px, py, ax, ay, bx, by) {
-        return (px - bx) * (ay - by) - (ax - bx) * (py - by);
-    }
-
-    function isPointInTriangle(px, py, ax, ay, bx, by, cx, cy) {
-        const b1 = sign(px, py, ax, ay, bx, by) < 0.0;
-        const b2 = sign(px, py, bx, by, cx, cy) < 0.0;
-        const b3 = sign(px, py, cx, cy, ax, ay) < 0.0;
-        return ((b1 === b2) && (b2 === b3));
-    }
-
-    function renderStaticTestImage() {
-        fontTestCtx1.clearRect(0, 0, fontTestCanvas1.width, fontTestCanvas1.height);
-        fontTestCtx1.font = `${fontSize}px 'Press Start 2P'`;
-        fontTestCtx1.fillText("M", 10, 30);
-    }
-
-    function renderDynamicTestImage() {
-        fontTestCtx2.clearRect(0, 0, fontTestCanvas2.width, fontTestCanvas2.height);
-        fontTestCtx2.font = `${fontSize}px 'Press Start 2P'`;
-        fontTestCtx2.fillText("M", 10, 30);
-    }
-
-    function compareFontRendering() {
-        renderDynamicTestImage();
-
-        const data1 = fontTestCtx1.getImageData(0, 0, fontTestCanvas1.width, fontTestCanvas1.height).data;
-        const data2 = fontTestCtx2.getImageData(0, 0, fontTestCanvas2.width, fontTestCanvas2.height).data;
-
-        for (let i = 0; i < data1.length; i++) {
-            if (data1[i] !== data2[i]) {
-                console.log("Demo is resetting due to potential font rendering issue."); // Log line added here
-                restartDemo();
-                return;
-            }
-        }
-        fontTestReady = true;
-    }
-
     function restartDemo() {
         calculateFontDimensions();
         initializeCharacterBitmaps();
         recalculateYOffset();
-        renderStaticTestImage();
-        fontTestReady = false; // Ensure font test is reset after restarting
     }
 
     function update() {
@@ -181,11 +126,6 @@ document.addEventListener("DOMContentLoaded", function () {
         displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
         displayCtx.drawImage(offscreenCanvas, 0, 0, displayCanvas.width, displayCanvas.height);
         drawActiveTriangle();
-
-        frameCount++;
-        if (frameCount % checkFrequency === 0 && !fontTestReady) {
-            compareFontRendering();
-        }
 
         requestAnimationFrame(render);
     }
@@ -329,8 +269,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    document.fonts.ready.then(function () {
-        restartDemo(); // Calculate font dimensions, initialize bitmaps, and render
+    // Use FontFaceObserver to ensure the font is fully loaded
+    const fontObserver = new FontFaceObserver('Press Start 2P');
+
+    fontObserver.load().then(function () {
+        restartDemo(); // Ensure the demo only starts after the font is loaded
         render(); // Start the render loop
+    }).catch(function (error) {
+        console.error('Font failed to load:', error);
+        // Optionally handle fallback or retry logic here
     });
 });
