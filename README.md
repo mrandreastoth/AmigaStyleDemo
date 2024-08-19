@@ -1,10 +1,10 @@
-# AmigaStyleDemo
+# Amiga-Style Demo
 A classic [Amiga](https://en.wikipedia.org/wiki/Amiga)-style sine text scroller with [copper bars](https://en.wikipedia.org/wiki/Raster_bar) initially developed in C# and ported to HTML/JavaScript.
 
 All the code was generated using OpenAI's ChatGPT 4.0 classic model using an interactive chat. No code was ever manually edited.
 
 ## Live Demo
-Check out the live demo of the AmigaStyleDemo [here](https://mrandreastoth.github.io/AmigaStyleDemo/).
+Check out the live demo of the Amiga-Style Demo [here](https://mrandreastoth.github.io/AmigaStyleDemo/).
 
 **Best viewed in landscape mode. The speed of the scroll text and the copper bars are individually controllable using both cursor keys or click/taps on the appropriate region of the screen.**
 
@@ -58,31 +58,35 @@ Check out the live demo of the AmigaStyleDemo [here](https://mrandreastoth.githu
     - **Goal**: Update the instructions to reflect the new control methods in both the web and C# versions.
     - **Implementation**: Revised the instructions text to mention both keyboard and click/tap controls.
 
-13. **README Update**:
-    - **Goal**: Document the latest changes and updates in the README file.
-    - **Implementation**: Updated the README to include the new control methods and reflect the latest project developments.
-
-14. **Character Bending**:
+13. **Character Bending**:
     - **Goal**: Ensure that each character follows the sine wave naturally by bending them according to the curve.
     - **Implementation**: Adjusted the rendering logic to "bend" the characters along the sine wave for a more authentic visual effect.
 
-15. **Character Spacing**:
+14. **Character Spacing**:
     - **Goal**: Introduce a small gap between characters to avoid them flowing into each other.
     - **Implementation**: Added configurable character spacing, preventing overlap and improving readability.
 
-16. **Dynamic Sizing of Pre-Calculated Image Data**:
+15. **Dynamic Sizing of Pre-Calculated Image Data**:
     - **Goal**: Dynamically adjust the size of pre-calculated character image data based on their actual dimensions.
     - **Implementation**: Implemented dynamic sizing logic to ensure pre-calculated character data fits within calculated bounding boxes.
 
-17. **Pre-Calculation of Sine Data**:
+16. **Pre-Calculation of Sine Data**:
     - **Goal**: Improve performance by pre-calculating the sine wave offsets.
     - **Implementation**: Introduced a pre-calculation step for sine wave offsets, reducing the computation needed during rendering.
 
-18. **Font Rendering Issue Detection and Recovery**:
+17. **Font Rendering Issue Detection and Recovery**:
     - **Goal**: Handle inconsistent font rendering in the web version that caused occasional incorrect font displays.
     - **Implementation**: Introduced a mechanism to detect font rendering issues by comparing pre-rendered character samples and automatically restarting the demo if discrepancies are found.
 
-19. **README Update**:
+18. **Replacement of Font Rendering Detection with FontFaceObserver**:
+    - **Goal**: Replace the previous font rendering issue detection mechanism with a more robust method.
+    - **Implementation**: Integrated the `FontFaceObserver` library, ensuring that the correct font is loaded before any rendering starts, replacing the older technique.
+
+19. **Minor String Changes**:
+    - **Goal**: Hyphenate "Amiga-style" in the demo and adjust other minor text for clarity.
+    - **Implementation**: Updated the demo text to "Amiga-style" and reflected this change in the relevant files.
+
+20. **README Update**:
     - **Goal**: Document the latest changes and updates in the README file, reflecting the newly added features.
     - **Implementation**: Updated the README to include the new improvements and reflect the latest project developments.
 
