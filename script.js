@@ -46,8 +46,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastRenderTime = 0;
     let fpsSmoothed  = 60;
 
-    // Full-screen flash on reset
-    let resetFlashOpacity = 0;
+    // Full-screen flash on reset (-1 = inactive, >=0 = seconds elapsed since triggered)
+    let resetFlashT = -1;
 
     // Font / layout
     let font_width, font_height, baseline_offset;
@@ -147,11 +147,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function resetSettings() {
-        scrollerSpeed     = DEFAULT_SCROLLER_SPEED;
-        copperSpeed       = DEFAULT_COPPER_SPEED;
-        capFPS            = DEFAULT_CAP_FPS;
-        capEnabled        = false;
-        resetFlashOpacity = 1.0;
+        scrollerSpeed = DEFAULT_SCROLLER_SPEED;
+        copperSpeed   = DEFAULT_COPPER_SPEED;
+        capFPS        = DEFAULT_CAP_FPS;
+        capEnabled    = false;
+        resetFlashT   = 0;
         recalculateYOffset();
     }
 
@@ -165,9 +165,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 activeDirection = Directions.NONE;
             }
         }
-        if (resetFlashOpacity > 0) {
-            const flashDelta = Math.min(delta, 32); // clamp to 2 frames so a hitch can't swallow the flash
-            resetFlashOpacity = Math.max(0, resetFlashOpacity - 5.0 * (flashDelta / 1000));
+        if (resetFlashT >= 0) {
+            resetFlashT += Math.min(delta, 50) / 1000; // clamp so a frame hitch can't skip past the flash
+            if (resetFlashT > 1.5) resetFlashT = -1;
         }
     }
 
@@ -198,9 +198,14 @@ document.addEventListener("DOMContentLoaded", function () {
         displayCtx.drawImage(offscreenCanvas, 0, 0, displayCanvas.width, displayCanvas.height);
         drawActiveTriangle();
         if (showInfo) drawInfo();
-        if (resetFlashOpacity > 0) {
-            displayCtx.fillStyle = `rgba(255, 255, 255, ${resetFlashOpacity})`;
-            displayCtx.fillRect(0, 0, displayCanvas.width, displayCanvas.height);
+        if (resetFlashT >= 0) {
+            // Damped heartbeat pulse: strong initial flash (lub), secondary pulse (dub),
+            // then a fading echo. e^(-3t) × cos²(3πt) — peaks at t=0 (1.0), t=0.33 (0.37), t=0.67 (0.14).
+            const flashOp = Math.exp(-3 * resetFlashT) * Math.cos(3 * Math.PI * resetFlashT) ** 2;
+            if (flashOp > 0.005) {
+                displayCtx.fillStyle = `rgba(255, 255, 255, ${flashOp})`;
+                displayCtx.fillRect(0, 0, displayCanvas.width, displayCanvas.height);
+            }
         }
 
         requestAnimationFrame(render);

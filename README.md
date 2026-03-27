@@ -168,7 +168,7 @@ The render loop was also converted to **delta-time-based animation**: `time` now
 
 FPS is measured using an exponential moving average (90% previous, 10% current frame) for a stable, readable display.
 
-**`r` fires a full-screen white flash** before resetting — a nod to a classic Amiga demo effect where a blinding white flash would punctuate a key moment in the music, often a snare hit or a bass drop. The screen whites out instantly and fades in roughly 0.2 seconds.
+**`r` fires a full-screen heartbeat flash** before resetting — a nod to a classic Amiga demo effect where a blinding white flash would punctuate a key moment in the music, often a snare hit or a bass drop, in the style of acts like Art of Noise. Rather than a simple linear fade, the flash uses a damped pulse — a strong initial hit, a brief dip, a secondary pulse (the "dub"), then a fading echo before silence. Mathematically: `e^(−3t) × cos²(3πt)`, giving peaks at t=0 (full white), t=0.33s (37%), and t=0.67s (14%), lasting roughly 1.5 seconds in total.
 
 **Frame rate cap — deliberately left uncapped by default.** See Chapter 3 for the reasoning. The cap is available as an opt-in via `c`.
 
