@@ -153,12 +153,33 @@ Claude Code analysed the render loop and identified four meaningful optimisation
 
 ---
 
+## Chapter 4: Info Panel, Frame Cap, and Delta-Time Animation (March 2026)
+
+The final session added interactive runtime controls and an info overlay:
+
+- **`i`** — toggles an info panel (top-left, same Press Start 2P font). Displays live FPS, cap status and target, scroller speed, and copper speed, followed by a key reference so the panel is self-documenting.
+- **`c`** — toggles the frame rate cap on/off. Default cap target is 60fps.
+- **`+` / `-`** — adjusts the cap target in 1fps steps (range: 1–240fps). Works on both the numeric keypad and the standard keyboard.
+- **`r`** — resets all settings to defaults (scroller speed, copper speed, cap target, cap off).
+
+A second oscillating instructions line was added at the bottom of the screen — "Press i to toggle info" — swinging in the opposite phase to the existing controls line, creating a counterpoint visual rhythm.
+
+The render loop was also converted to **delta-time-based animation**: `time` now advances proportionally to elapsed milliseconds rather than by a fixed step per frame. This keeps the animation running at a consistent visual speed regardless of frame rate — essential now that capping can halve or quarter the frame count per second.
+
+FPS is measured using an exponential moving average (90% previous, 10% current frame) for a stable, readable display.
+
+**Frame rate cap — deliberately left uncapped by default.** See Chapter 3 for the reasoning. The cap is available as an opt-in via `c`.
+
+**Mobile:** The new controls (`i`, `c`, `+`/`-`, `r`) have no mobile equivalent — there is no keyboard on touch devices. The original click/tap controls for scroller and copper speed continue to work on mobile. A long-press gesture to surface a touch-friendly control panel is a possible future direction, but is not currently implemented.
+
+---
+
 ## Future Plans
 
 The following features have been designed but not yet implemented:
 
-- **Frame rate cap** — toggleable with `c`, adjustable with `+` and `-`. Would allow capping the render loop to a chosen target (e.g. 60fps) to reduce CPU load on high-refresh-rate displays, while keeping uncapped as the default.
-- **Frame rate display** — toggleable with `f`. Would overlay the current FPS in a corner of the canvas for diagnostic use.
+- **Frame rate display** — toggleable with `f`. Would overlay the current FPS in a corner of the canvas for diagnostic use. *(Note: the info panel toggled by `i` already shows live FPS — `f` would be a lightweight standalone toggle without the full panel.)*
+- **Mobile control panel** — a long-press gesture to surface touch-friendly equivalents of `i`, `c`, `+`/`-`, and `r`.
 
 ---
 
