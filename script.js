@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const DEFAULT_SCROLLER_SPEED = 60.0;
     const DEFAULT_COPPER_SPEED   = 2.0;
     const DEFAULT_CAP_FPS        = 60;
+    const RESET_HOLD_TIME        = 0.25; // seconds at peak white before fade
 
     // Frame cap and info panel
     let showInfo     = false;
@@ -147,11 +148,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function resetSettings() {
-        scrollerSpeed = DEFAULT_SCROLLER_SPEED;
-        copperSpeed   = DEFAULT_COPPER_SPEED;
-        capFPS        = DEFAULT_CAP_FPS;
-        capEnabled    = false;
-        resetFlashT   = 0;
+        scrollerSpeed   = DEFAULT_SCROLLER_SPEED;
+        copperSpeed     = DEFAULT_COPPER_SPEED;
+        capFPS          = DEFAULT_CAP_FPS;
+        capEnabled      = false;
+        flashOpacity    = 0;
+        activeDirection = Directions.NONE;
+        resetFlashT     = 0;
         recalculateYOffset();
     }
 
@@ -167,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (resetFlashT >= 0) {
             resetFlashT += Math.min(delta, 50) / 1000; // clamp so a frame hitch can't skip past the flash
-            if (resetFlashT > 0.5) resetFlashT = -1;
+            if (resetFlashT > 1.2) resetFlashT = -1;
         }
     }
 
@@ -196,22 +199,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
         displayCtx.drawImage(offscreenCanvas, 0, 0, displayCanvas.width, displayCanvas.height);
-        drawActiveTriangle();
-        if (showInfo) drawInfo();
         if (resetFlashT >= 0) {
-            // "tu-tunk" double hit: two Gaussian bumps close together.
-            // First (tu): holds near full white for ~35ms then drops.
-            // Second (tunk): snappier bounce at 150ms, 70% brightness.
-            // Clear gap between them (~0.23 at the dip), gone by ~300ms.
-            const t    = resetFlashT;
-            const tu   = Math.exp(-0.5 * (t / 0.035) ** 2);
-            const tunk = 0.70 * Math.exp(-0.5 * ((t - 0.15) / 0.04) ** 2);
-            const flashOp = Math.min(1.0, tu + tunk);
-            if (flashOp > 0.01) {
-                displayCtx.fillStyle = `rgba(255, 255, 255, ${flashOp})`;
+            // Hold at pure white for 250ms, then exponential fade out.
+            const t       = resetFlashT;
+            const flashOp = t < RESET_HOLD_TIME ? 1.0 : Math.exp(-4 * (t - RESET_HOLD_TIME));
+            if (flashOp > 0.005) {
+                displayCtx.globalAlpha = flashOp;
+                displayCtx.fillStyle   = 'white';
                 displayCtx.fillRect(0, 0, displayCanvas.width, displayCanvas.height);
+                displayCtx.globalAlpha = 1;
             }
         }
+        drawActiveTriangle();
+        if (showInfo) drawInfo();
 
         requestAnimationFrame(render);
     }
@@ -301,6 +301,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function drawActiveTriangle() {
+        if (resetFlashT >= 0 && resetFlashT < RESET_HOLD_TIME) return;
         if (flashOpacity > 0 && activeDirection !== Directions.NONE) {
             const cx = displayCanvas.width / 2;
             const cy = displayCanvas.height / 2;
