@@ -46,6 +46,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastRenderTime = 0;
     let fpsSmoothed  = 60;
 
+    // Full-screen flash on reset
+    let resetFlashOpacity = 0;
+
     // Font / layout
     let font_width, font_height, baseline_offset;
     const fontSize       = 48;
@@ -144,10 +147,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function resetSettings() {
-        scrollerSpeed = DEFAULT_SCROLLER_SPEED;
-        copperSpeed   = DEFAULT_COPPER_SPEED;
-        capFPS        = DEFAULT_CAP_FPS;
-        capEnabled    = false;
+        scrollerSpeed     = DEFAULT_SCROLLER_SPEED;
+        copperSpeed       = DEFAULT_COPPER_SPEED;
+        capFPS            = DEFAULT_CAP_FPS;
+        capEnabled        = false;
+        resetFlashOpacity = 1.0;
         recalculateYOffset();
     }
 
@@ -160,6 +164,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 flashOpacity = 0;
                 activeDirection = Directions.NONE;
             }
+        }
+        if (resetFlashOpacity > 0) {
+            resetFlashOpacity = Math.max(0, resetFlashOpacity - 5.0 * (delta / 1000)); // fades in ~0.2s
         }
     }
 
@@ -190,6 +197,10 @@ document.addEventListener("DOMContentLoaded", function () {
         displayCtx.drawImage(offscreenCanvas, 0, 0, displayCanvas.width, displayCanvas.height);
         drawActiveTriangle();
         if (showInfo) drawInfo();
+        if (resetFlashOpacity > 0) {
+            displayCtx.fillStyle = `rgba(255, 255, 255, ${resetFlashOpacity})`;
+            displayCtx.fillRect(0, 0, displayCanvas.width, displayCanvas.height);
+        }
 
         requestAnimationFrame(render);
     }
