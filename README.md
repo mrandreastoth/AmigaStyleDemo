@@ -150,3 +150,18 @@ Claude Code analysed the render loop and identified four meaningful optimisation
 **d) Intermediate canvas for the text scroller** — The sine wave scroller worked by drawing one-pixel-wide vertical slices of each character bitmap at a vertically offset position. The GPU source texture switched on every character boundary — roughly every 50 columns. The fix introduces an intermediate "text strip" canvas. In Phase 1, all visible characters are composited onto the strip (one `drawImage` call per character, no distortion). In Phase 2, one-pixel columns are blitted from the strip to the offscreen canvas with sine offsets applied. The source texture never changes during Phase 2, allowing the GPU to cache it efficiently across all 800 column reads.
 
 **Frame rate capping — considered and deliberately rejected.** Capping to 60fps would have halved CPU usage on 120Hz/144Hz displays at no visible cost, and was seriously considered. But the original Amiga hardware ran its demos at a fixed, limited frame rate determined by PAL/NTSC raster timing. Running uncapped on modern hardware — potentially exceeding 144fps — is a genuine demonstration of how far the platform has come. The cap was left out intentionally: the excess frames are the point.
+
+---
+
+## Future Plans
+
+The following features have been designed but not yet implemented:
+
+- **Frame rate cap** — toggleable with `c`, adjustable with `+` and `-`. Would allow capping the render loop to a chosen target (e.g. 60fps) to reduce CPU load on high-refresh-rate displays, while keeping uncapped as the default.
+- **Frame rate display** — toggleable with `f`. Would overlay the current FPS in a corner of the canvas for diagnostic use.
+
+---
+
+## C# Version
+
+The original C# version (using SFML.Net) has not been kept in sync with the JavaScript version since early in the project's history. It is missing all improvements made from step 7 onwards: the HTML5 port, interactive controls, character bending, spacing, pre-computation, font loading fixes, the `isPointInTriangle` bug fix, and the render loop optimisations documented in Chapter 3. It remains in the repository as a historical artefact.
