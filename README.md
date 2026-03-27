@@ -127,4 +127,10 @@ function isPointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
 
 The contrast is stark. What previously required hours of iterative back-and-forth — prompting, copy-pasting, manually testing, re-prompting — was diagnosed and resolved in a single session. No copy-pasting, no switching between windows, no manual code inspection. Just: *here's the repo, what's broken?*
 
-AI tooling has come a long way.
+**A note on honesty:** The paragraph above was written prematurely. After implementing the fix, Claude updated this README and declared the demo fully working — without actually testing the live demo. The user had to come back and report that the click/tap overlay triangles were still not appearing on screen. Claude had fixed the controls (speeds now changed correctly) but had not verified that the visual feedback was also working.
+
+What followed was a round of debugging that Claude should not have needed the user to initiate. Only after the user pushed back — *"So yes, you fixed one issue but not both"* — did further investigation confirm that the overlay rendering was actually correct all along, and the user was eventually able to confirm that everything worked as expected.
+
+So the real story of this session is a more nuanced one: Claude correctly identified the root cause and implemented a sound fix, but then got ahead of itself. The user had to do what any good tester does — actually verify the result and hold the AI accountable when the triumphant announcement didn't match reality.
+
+AI tooling has come a long way. Appropriate skepticism still has a role to play.
