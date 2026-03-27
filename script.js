@@ -39,7 +39,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const amplitude = 50;
 
     let y_offset;
-    let characterBitmap = {}; // Define the characterBitmap object here
+    let characterBitmap = {};
+    let instructionsWidth;
+    let textStripCanvas, textStripCtx;
+    let copperLightness;
 
     function x_to_index(x) {
         const total_width = offscreenCanvas.width + 2 * font_width;
@@ -48,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function recalculateYOffset() {
-        y_offset = new Array(offscreenCanvas.width + 2 * font_width); // Initialize y_offset array here
+        y_offset = new Array(offscreenCanvas.width + 2 * font_width);
 
         for (let x = -font_width; x < offscreenCanvas.width + font_width; x++) {
             const index = x_to_index(x);
@@ -105,6 +108,27 @@ document.addEventListener("DOMContentLoaded", function () {
         calculateFontDimensions();
         initializeCharacterBitmaps();
         recalculateYOffset();
+
+        // Cache instructions text width — the string never changes
+        offscreenCtx.font = "16px 'Press Start 2P'";
+        instructionsWidth = offscreenCtx.measureText(instructions).width;
+
+        // Intermediate canvas for the text scroller: characters are composited here
+        // without distortion each frame, then blitted column-by-column with sine offsets.
+        // This keeps Phase 2 reading from a single source texture throughout.
+        textStripCanvas = document.createElement('canvas');
+        textStripCanvas.width = offscreenCanvas.width;
+        textStripCanvas.height = font_height;
+        textStripCtx = textStripCanvas.getContext('2d');
+
+        // Pre-compute per-row lightness values for copper bars.
+        // The gradient shape (50% → 20% → 0% lightness) is fixed; only the hue rotates each frame.
+        const barHeight = 15;
+        copperLightness = new Array(barHeight);
+        for (let r = 0; r < barHeight; r++) {
+            const t = r / (barHeight - 1);
+            copperLightness[r] = t <= 0.5 ? 50 - 60 * t : 40 - 40 * t;
+        }
     }
 
     function update() {
@@ -131,54 +155,53 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function drawScrollingText() {
-        let baseX = offscreenCanvas.width - ((time * scrollerSpeed) % (text.length * (font_width + letter_spacing) + offscreenCanvas.width));
+        const totalWidth = text.length * (font_width + letter_spacing);
+        const baseX = offscreenCanvas.width - ((time * scrollerSpeed) % (totalWidth + offscreenCanvas.width));
+        const midY = (offscreenCanvas.height / 2) - baseline_offset;
 
+        // Phase 1: composite all visible characters onto the text strip (no distortion).
+        // One drawImage call per visible character — source texture switches here, not below.
+        textStripCtx.clearRect(0, 0, textStripCanvas.width, textStripCanvas.height);
         for (let i = 0; i < text.length; i++) {
-            let x = baseX + i * (font_width + letter_spacing);
-            drawCharacterWithSineWave(x, text[i]);
+            const x = baseX + i * (font_width + letter_spacing);
+            if (x + font_width >= 0 && x < offscreenCanvas.width) {
+                textStripCtx.drawImage(characterBitmap[text[i]], x, 0);
+            }
         }
-    }
 
-    function drawCharacterWithSineWave(x, character) {
-        for (let p = 0; p < font_width; p++) {
-            let index = x_to_index(x + p);
-            let yOffset = y_offset[index];
-
-            offscreenCtx.drawImage(
-                characterBitmap[character],
-                p, 0, 1, font_height,
-                x + p, (offscreenCanvas.height / 2) + yOffset - baseline_offset,
-                1, font_height
-            );
+        // Phase 2: blit one-pixel-wide columns from the strip to the offscreen canvas with
+        // per-column sine offsets. The source is always textStripCanvas — no texture switching.
+        for (let x = 0; x < offscreenCanvas.width; x++) {
+            const yOffset = y_offset[x_to_index(x)];
+            offscreenCtx.drawImage(textStripCanvas, x, 0, 1, font_height, x, midY + yOffset, 1, font_height);
         }
     }
 
     function drawInstructions() {
-        offscreenCtx.font = "16px 'Press Start 2P'";
         offscreenCtx.fillStyle = "white";
-        let amplitude = (offscreenCanvas.width - offscreenCtx.measureText(instructions).width) / 2;
-        let instructionX = (offscreenCanvas.width / 2) + Math.sin(time * 0.5) * amplitude;
-        offscreenCtx.fillText(instructions, instructionX - offscreenCtx.measureText(instructions).width / 2, offscreenCanvas.height - 30);
+        const sineAmplitude = (offscreenCanvas.width - instructionsWidth) / 2;
+        const instructionX = (offscreenCanvas.width / 2) + Math.sin(time * 0.5) * sineAmplitude - instructionsWidth / 2;
+        offscreenCtx.fillText(instructions, instructionX, offscreenCanvas.height - 30);
     }
 
     function drawCopperBars() {
-        let barHeight = 15;
-        let numBars = 20;
-        let barSpacing = 5;
-        let barFrequency = 0.2;
-        let barAmplitude = 40;
-        let centerY = offscreenCanvas.height / 2 - (numBars * (barHeight + barSpacing) / 2);
+        const barHeight = copperLightness.length;
+        const numBars = 20;
+        const barSpacing = 5;
+        const barFrequency = 0.2;
+        const barAmplitude = 40;
+        const centerY = offscreenCanvas.height / 2 - (numBars * (barHeight + barSpacing) / 2);
 
         for (let i = 0; i < numBars; i++) {
-            let yOffset = Math.sin((time + i * 0.2) * barFrequency + time * copperSpeed) * barAmplitude;
-            let yPosition = centerY + i * (barHeight + barSpacing) + yOffset;
-            let hue = (time * 10 + i * 5) % 360;
-            let gradient = offscreenCtx.createLinearGradient(0, yPosition, 0, yPosition + barHeight);
-            gradient.addColorStop(0, `hsl(${hue}, 100%, 50%)`);
-            gradient.addColorStop(0.5, `hsl(${hue}, 100%, 20%)`);
-            gradient.addColorStop(1, `hsl(${hue}, 100%, 0%)`);
-            offscreenCtx.fillStyle = gradient;
-            offscreenCtx.fillRect(0, yPosition, offscreenCanvas.width, barHeight);
+            const yOffset = Math.sin((time + i * 0.2) * barFrequency + time * copperSpeed) * barAmplitude;
+            const yPosition = centerY + i * (barHeight + barSpacing) + yOffset;
+            const hue = (time * 10 + i * 5) % 360;
+            // Draw one filled rectangle per row using pre-computed lightness values.
+            // Avoids allocating a LinearGradient object on every frame.
+            for (let r = 0; r < barHeight; r++) {
+                offscreenCtx.fillStyle = `hsl(${hue}, 100%, ${copperLightness[r]}%)`;
+                offscreenCtx.fillRect(0, yPosition + r, offscreenCanvas.width, 1);
+            }
         }
     }
 

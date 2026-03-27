@@ -134,3 +134,19 @@ What followed was a round of debugging that Claude should not have needed the us
 So the real story of this session is a more nuanced one: Claude correctly identified the root cause and implemented a sound fix, but then got ahead of itself. The user had to do what any good tester does — actually verify the result and hold the AI accountable when the triumphant announcement didn't match reality.
 
 AI tooling has come a long way. Appropriate skepticism still has a role to play.
+
+---
+
+## Chapter 3: Performance Optimisation (March 2026)
+
+With the demo working correctly, attention turned to CPU efficiency. Modern displays run at 120Hz or 144Hz, meaning the render loop fires twice as often as on a 60Hz screen — and every inefficiency compounds accordingly.
+
+Claude Code analysed the render loop and identified four meaningful optimisation opportunities:
+
+**a) Cached font metrics and font state** — `drawInstructions()` was calling `measureText()` twice per frame on a string that never changes, and reassigning `offscreenCtx.font` on every frame despite it never varying. Both are now set once at initialisation.
+
+**b) Copper bar palette pre-computation** — The copper bar renderer was allocating a new `LinearGradient` object on every frame for each of the 20 bars — 20 GPU resource allocations per frame, per second, indefinitely. The gradient shape (lightness from 50% at the top, through 20% at the midpoint, to 0% at the bottom) is fixed; only the hue rotates each frame. The per-row lightness values are now pre-computed once into an array, and each bar is drawn as a series of 1-pixel-tall solid `fillRect` calls with only the hue varying. This is also more faithful to how the Amiga copper chip actually worked: it changed a colour register on each raster scanline, producing exactly this kind of hard-edged per-line colour transition.
+
+**d) Intermediate canvas for the text scroller** — The sine wave scroller worked by drawing one-pixel-wide vertical slices of each character bitmap at a vertically offset position. The GPU source texture switched on every character boundary — roughly every 50 columns. The fix introduces an intermediate "text strip" canvas. In Phase 1, all visible characters are composited onto the strip (one `drawImage` call per character, no distortion). In Phase 2, one-pixel columns are blitted from the strip to the offscreen canvas with sine offsets applied. The source texture never changes during Phase 2, allowing the GPU to cache it efficiently across all 800 column reads.
+
+**Frame rate capping — considered and deliberately rejected.** Capping to 60fps would have halved CPU usage on 120Hz/144Hz displays at no visible cost, and was seriously considered. But the original Amiga hardware ran its demos at a fixed, limited frame rate determined by PAL/NTSC raster timing. Running uncapped on modern hardware — potentially exceeding 144fps — is a genuine demonstration of how far the platform has come. The cap was left out intentionally: the excess frames are the point.
