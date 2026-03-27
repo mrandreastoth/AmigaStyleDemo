@@ -168,7 +168,7 @@ The render loop was also converted to **delta-time-based animation**: `time` now
 
 FPS is measured using an exponential moving average (90% previous, 10% current frame) for a stable, readable display.
 
-**`r` fires a full-screen heartbeat flash** before resetting — a nod to a classic Amiga demo effect where a blinding white flash would punctuate a key moment in the music, often a snare hit or a bass drop, in the style of acts like Art of Noise. Rather than a simple linear fade, the flash uses a damped pulse — a strong initial hit, a brief dip, a secondary pulse (the "dub"), then a fading echo before silence. Mathematically: `e^(−3t) × cos²(3πt)`, giving peaks at t=0 (full white), t=0.33s (37%), and t=0.67s (14%), lasting roughly 1.5 seconds in total.
+**`r` fires a full-screen "tu-tunk" flash** before resetting — a nod to a classic Amiga demo effect where a blinding white flash would punctuate a key moment in the music, like a snare hit or bass drop, in the style of acts like Art of Noise. The effect uses two close Gaussian bumps: the first holds near full white for a brief moment (the "tu"), then drops into a clear gap, followed immediately by a snappier second hit at 70% brightness (the "tunk"). The whole thing is over in under 300ms — a quick double-strike, like a heartbeat.
 
 **Frame rate cap — deliberately left uncapped by default.** See Chapter 3 for the reasoning. The cap is available as an opt-in via `c`.
 

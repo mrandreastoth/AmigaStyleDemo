@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (resetFlashT >= 0) {
             resetFlashT += Math.min(delta, 50) / 1000; // clamp so a frame hitch can't skip past the flash
-            if (resetFlashT > 1.5) resetFlashT = -1;
+            if (resetFlashT > 0.5) resetFlashT = -1;
         }
     }
 
@@ -199,10 +199,15 @@ document.addEventListener("DOMContentLoaded", function () {
         drawActiveTriangle();
         if (showInfo) drawInfo();
         if (resetFlashT >= 0) {
-            // Damped heartbeat pulse: strong initial flash (lub), secondary pulse (dub),
-            // then a fading echo. e^(-3t) × cos²(3πt) — peaks at t=0 (1.0), t=0.33 (0.37), t=0.67 (0.14).
-            const flashOp = Math.exp(-3 * resetFlashT) * Math.cos(3 * Math.PI * resetFlashT) ** 2;
-            if (flashOp > 0.005) {
+            // "tu-tunk" double hit: two Gaussian bumps close together.
+            // First (tu): holds near full white for ~35ms then drops.
+            // Second (tunk): snappier bounce at 150ms, 70% brightness.
+            // Clear gap between them (~0.23 at the dip), gone by ~300ms.
+            const t    = resetFlashT;
+            const tu   = Math.exp(-0.5 * (t / 0.035) ** 2);
+            const tunk = 0.70 * Math.exp(-0.5 * ((t - 0.15) / 0.04) ** 2);
+            const flashOp = Math.min(1.0, tu + tunk);
+            if (flashOp > 0.01) {
                 displayCtx.fillStyle = `rgba(255, 255, 255, ${flashOp})`;
                 displayCtx.fillRect(0, 0, displayCanvas.width, displayCanvas.height);
             }
