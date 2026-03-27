@@ -93,3 +93,38 @@ Check out the live demo of the Amiga-Style Demo [here](https://mrandreastoth.git
 These iterative steps, driven by feedback and refinement, resulted in a polished Amiga-style sine text scroller with animated copper bars, effectively replicating the nostalgic look and feel of classic Amiga demos. The addition of an HTML/JavaScript version broadens accessibility and showcases the adaptability of the original design to modern web technologies.
 
 **Note:** The C# version still needs to be updated with the latest advancements made in the JavaScript version.
+
+---
+
+## Chapter 2: Claude Code Takes Over (March 2026)
+
+More than a year after the original ChatGPT-driven development, the demo had been silently broken for months. The animation rendered fine, but every attempt to interact with it — clicking to change speed, pressing arrow keys — did nothing. The controls were completely dead.
+
+During the original development sessions with ChatGPT 4.0, iterating on the demo was a slow, painful process. Hours were spent prompting, reviewing, copy-pasting code, testing in the browser, and going back and forth trying to get things right. The AI would sometimes introduce regressions while fixing other things, and tracking down the cause of a bug required careful manual inspection of the generated code.
+
+In March 2026, [Claude Code](https://claude.ai/claude-code) (Anthropic's agentic AI coding tool) was pointed at the repository with a simple instruction: *read the README, figure out what's wrong, and fix it.*
+
+Claude Code cloned the repo, read all the source files, and identified the root cause in one pass:
+
+**The bug:** ChatGPT had generated four call sites to a function called `isPointInTriangle()` — used to determine which triangular screen region the user clicked or tapped — but had never actually generated the function body. The function simply did not exist anywhere in the codebase. Every interaction triggered a `ReferenceError` at runtime, silently swallowing all keyboard and click input.
+
+**The fix:** A standard cross-product point-in-triangle implementation, added in under a minute:
+
+```javascript
+function sign(px, py, x1, y1, x2, y2) {
+    return (px - x2) * (y1 - y2) - (x1 - x2) * (py - y2);
+}
+
+function isPointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
+    const d1 = sign(px, py, x1, y1, x2, y2);
+    const d2 = sign(px, py, x2, y2, x3, y3);
+    const d3 = sign(px, py, x3, y3, x1, y1);
+    const hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+    const hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+    return !(hasNeg && hasPos);
+}
+```
+
+The contrast is stark. What previously required hours of iterative back-and-forth — prompting, copy-pasting, manually testing, re-prompting — was diagnosed and resolved in a single session. No copy-pasting, no switching between windows, no manual code inspection. Just: *here's the repo, what's broken?*
+
+AI tooling has come a long way.
