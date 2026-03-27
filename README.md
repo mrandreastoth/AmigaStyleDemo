@@ -168,6 +168,8 @@ The render loop was also converted to **delta-time-based animation**: `time` now
 
 FPS is measured using an exponential moving average (90% previous, 10% current frame) for a stable, readable display.
 
+**`r` fires a full-screen white flash** before resetting — a nod to a classic Amiga demo effect where a blinding white flash would punctuate a key moment in the music, often a snare hit or a bass drop. The screen whites out instantly and fades in roughly 0.2 seconds.
+
 **Frame rate cap — deliberately left uncapped by default.** See Chapter 3 for the reasoning. The cap is available as an opt-in via `c`.
 
 **Mobile:** The new controls (`i`, `c`, `+`/`-`, `r`) have no mobile equivalent — there is no keyboard on touch devices. The original click/tap controls for scroller and copper speed continue to work on mobile. A long-press gesture to surface a touch-friendly control panel is a possible future direction, but is not currently implemented.

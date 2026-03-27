@@ -166,7 +166,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
         if (resetFlashOpacity > 0) {
-            resetFlashOpacity = Math.max(0, resetFlashOpacity - 5.0 * (delta / 1000)); // fades in ~0.2s
+            const flashDelta = Math.min(delta, 32); // clamp to 2 frames so a hitch can't swallow the flash
+            resetFlashOpacity = Math.max(0, resetFlashOpacity - 5.0 * (flashDelta / 1000));
         }
     }
 
